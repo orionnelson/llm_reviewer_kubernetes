@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pr-agent-github-app
+  namespace: llms
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pr-agent-github-app
+  template:
+    metadata:
+      labels:
+        app: pr-agent-github-app
+    spec:
+      volumes:
+        - name: pr-agent-settings
+          secret:
+            secretName: pr-agent-settings
+            items:
+              - key: .secrets.toml
+                path: .secrets.toml
+
+      containers:
+        - name: pr-agent
+          image: codiumai/pr-agent:github_app
+
+          # Mount ONLY the file, not the whole directory
+          volumeMounts:
+            - name: pr-agent-settings
+              mountPath: /app/pr_agent/settings/.secrets.toml
+              subPath: .secrets.toml
+              readOnly: true
+
+          env:
+            - name: OPENAI_API_BASE
+              value: "http://coder-30b-q4km-svc.llms.svc.cluster.local:8000/v1"
+            - name: OPENAI_KEY
+              #value: "dummy-local-key"
+            - name: PROVIDER
+              value: "github_app"
+
+            # Safety: ensure github.ratelimit_retries exists
+            - name: GITHUB__RATELIMIT_RETRIES
+              value: "3"
+
+          ports:
+            - containerPort: 3000
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "256Mi"
+            limits:
+              cpu: "3"
+              memory: "25Gi"

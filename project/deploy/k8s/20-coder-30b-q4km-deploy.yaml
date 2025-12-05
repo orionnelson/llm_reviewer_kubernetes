@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coder-30b-q4km
+  namespace: llms
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coder-30b-q4km
+  template:
+    metadata:
+      labels:
+        app: coder-30b-q4km
+    spec:
+      containers:
+        - name: llama-server
+          image: ghcr.io/ggml-org/llama.cpp:server
+          env:
+            # Required: model path inside the container
+            - name: LLAMA_ARG_MODEL
+              value: /models/Qwen3-Coder-30B-A3B-Instruct-1M-Q4_K_M.gguf
+
+            # Context size – keep sane on CPU
+            - name: LLAMA_ARG_CTX_SIZE
+              value: "4096"
+
+            # Threads
+            - name: LLAMA_ARG_THREADS
+              value: "16"
+
+            # Port inside container (llama-server default is 8080)
+            - name: LLAMA_ARG_PORT
+              value: "8080"
+
+          ports:
+            - name: http
+              containerPort: 8080
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "16Gi"
+            limits:
+              cpu: "16"
+              memory: "32Gi"
+
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+
+      volumes:
+        - name: models
+          hostPath:
+            path: /opt/models/qwen3-coder-30b-1m-q4km
+            type: Directory

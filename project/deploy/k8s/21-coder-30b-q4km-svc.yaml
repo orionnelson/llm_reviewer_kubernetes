@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: coder-30b-q4km-svc
+  namespace: llms
+spec:
+  selector:
+    app: coder-30b-q4km
+  ports:
+    - name: http
+      port: 8000      # cluster port
+      targetPort: 8080  # containerPort in the Deployment
+  type: ClusterIP
