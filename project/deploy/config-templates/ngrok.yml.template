@@ -1,0 +1,11 @@
+version: "3"
+agent:
+    authtoken: {{ NGROK_AUTH_TOKEN }}
+tunnels:
+  llms-pr-agent:
+    url: {{NGROK_URL}}
+    addr: {{HOSTIP}}:{{HOSTPORT:32080}}
+    proto: http
+    inspect: true
+    schemes:
+      - https
