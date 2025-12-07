@@ -23,7 +23,7 @@ spec:
 
             # Context size – keep sane on CPU
             - name: LLAMA_ARG_CTX_SIZE
-              value: "4096"
+              value: "40960"
 
             # Threads
             - name: LLAMA_ARG_THREADS
@@ -43,7 +43,7 @@ spec:
               memory: "16Gi"
             limits:
               cpu: "16"
-              memory: "32Gi"
+              memory: "50Gi"
 
           volumeMounts:
             - name: models
