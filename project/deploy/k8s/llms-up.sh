@@ -10,7 +10,7 @@ echo "[llms-up] Applying LLM deployment and service..."
 kubectl apply -f 20-coder-30b-q4km-deploy.yaml
 kubectl apply -f 21-coder-30b-q4km-svc.yaml
 #TODO: load secret file from config
-kubectl -n llms create secret generic pr-agent-settings   --from-file=.secrets.toml=.secrets.toml
+kubectl -n llms create secret generic pr-agent-settings   --from-file=.secrets.toml
 echo "[llms-up] Applying PR-Agent config, deployment, and service..."
 kubectl apply -f 30-pr-agent-configmap.yaml
 kubectl apply -f 31-pr-agent-github-app-deploy.yaml
