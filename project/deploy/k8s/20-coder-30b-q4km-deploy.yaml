@@ -15,12 +15,16 @@ spec:
     spec:
       containers:
         - name: llama-server
-          image: ghcr.io/ggml-org/llama.cpp:server
+          image: ghcr.io/ggml-org/llama.cpp:server-cuda-b7549
           env:
-            # Required: model path inside the container
-            - name: LLAMA_ARG_MODEL
-              value: /models/Qwen3-Coder-30B-A3B-Instruct-1M-Q4_K_M.gguf
+           # Required: model path inside the container
+            # Router mode: serve multiple models from a directory (do NOT set LLAMA_ARG_MODEL)
+            - name: LLAMA_ARG_MODELS_DIR
+              value: /models
 
+            # Keep at most 2 models loaded at once (LRU eviction)
+            - name: LLAMA_ARG_MODELS_MAX
+              value: "2"
             # Context size – keep sane on CPU
             - name: LLAMA_ARG_CTX_SIZE
               value: "40960"
@@ -53,5 +57,5 @@ spec:
       volumes:
         - name: models
           hostPath:
-            path: /opt/models/qwen3-coder-30b-1m-q4km
+            path: /srv/models/llama-router
             type: Directory
