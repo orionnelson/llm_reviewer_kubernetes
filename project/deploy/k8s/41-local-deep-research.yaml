@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-deep-research
+  namespace: llms
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-deep-research
+  template:
+    metadata:
+      labels:
+        app: local-deep-research
+    spec:
+      containers:
+        - name: local-deep-research
+          image: localdeepresearch/local-deep-research:latest
+          ports:
+            - name: http
+              containerPort: 5000
+          env:
+            # Docker-required settings from upstream compose (same invariants apply in K8s) :contentReference[oaicite:1]{index=1}
+            - name: LDR_WEB_HOST
+              value: "0.0.0.0"
+            - name: LDR_WEB_PORT
+              value: "5000"
+            - name: LDR_DATA_DIR
+              value: "/data"
+
+            # Wire LDR -> in-cluster SearXNG (upstream compose uses this exact setting key) :contentReference[oaicite:2]{index=2}
+            - name: LDR_SEARCH_ENGINE_WEB_SEARXNG_DEFAULT_PARAMS_INSTANCE_URL
+              value: "http://searxng.llms.svc.cluster.local:8080"
+
+            # Use your llama.cpp OpenAI-compatible endpoint (instead of Ollama)
+            # Upstream compose documents OpenAI-compatible mode via openai_endpoint vars. :contentReference[oaicite:3]{index=3}
+            - name: LDR_LLM_PROVIDER
+              value: "openai_endpoint"
+            - name: LDR_LLM_OPENAI_ENDPOINT_URL
+              value: "http://coder-30b-q4km-svc.llms.svc.cluster.local:8000/v1"
+            - name: LDR_LLM_OPENAI_ENDPOINT_API_KEY
+              value: "DUMMY_FROM_ENV"
+
+          volumeMounts:
+            - name: ldr-data
+              mountPath: /data
+            - name: ldr-rag-cache
+              mountPath: /data/cache/rag_indices
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 45
+            periodSeconds: 20
+
+      volumes:
+        - name: ldr-data
+          hostPath:
+            path: /srv/ldr/data
+            type: Directory
+        - name: ldr-rag-cache
+          hostPath:
+            path: /srv/ldr/rag_cache
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-deep-research-svc
+  namespace: llms
+spec:
+  selector:
+    app: local-deep-research
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+      nodePort: 32082
+  type: NodePort
