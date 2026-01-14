@@ -14,6 +14,7 @@ echo "[llms-up] Applying PR-Agent config, deployment, and service..."
 kubectl apply -f 30-pr-agent-configmap.yaml
 kubectl apply -f 31-pr-agent-github-app-deploy.yaml
 kubectl apply -f 32-pr-agent-github-app-svc.yaml
-
+kubectl apply -f 40-searxng.yaml
+kubectl apply -f 41-local-deep-research.yaml
 echo "[llms-up] Current llms pods:"
 kubectl -n llms get pods -o wide
